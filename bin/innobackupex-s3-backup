@@ -1,13 +1,15 @@
 #!/bin/bash
-set -e -o nounset
-# Config vars
 
+set -e -o nounset
+#set -o verbose
+
+# Config vars
 BACKUPS_DIR=${BACKUPS_DIR:-"/backups/mysql"}
 WEEK=$(date -d "$(( $(date +%u) - 1 )) days ago" +%Y-%m-%d)
 WEEK_GREP_PATTERN="[0-9]\{4\}\-[0-9]\{2\}\-[0-9]\{2\}$"
 CURRENT_BACKUP_DIR=${BACKUPS_DIR}/${WEEK}
 KEY_FILE=${KEY_FILE:-$HOME/.s3backup.key}
-IBEX_BASE_ARGS="--encrypt=AES256 --encrypt-key-file=$KEY_FILE --stream=xbstream --compress --extra-lsndir=$CURRENT_BACKUP_DIR"
+IBEX_BASE_ARGS="--no-lock --encrypt=AES256 --encrypt-key-file=$KEY_FILE --stream=xbstream --compress --extra-lsndir=$CURRENT_BACKUP_DIR"
 BACKUP_DATE_FORMAT="%F_%H-%M-%S"
 HOST=$(hostname -s)
 S3_BUCKET_PATH="mysql/${HOST}/${WEEK}"
@@ -23,12 +25,18 @@ function ts {
 
 # Check required environment variables.
 [ ! -z "${S3_BUCKET-}" ] || error_exit "S3_BUCKET environment variable required."
-[ ! -z "${AWS_ACCESS_KEY_ID-}" ] || error_exit "AWS_ACCESS_KEY_ID environment variable required."
-[ ! -z "${AWS_SECRET_ACCESS_KEY-}" ] || error_exit "AWS_SECRET_ACCESS_KEY environment variable required."
+
+if [ ! -z "${MYSQL_USER-}" ]; then
+    IBEX_BASE_ARGS="${IBEX_BASE_ARGS} --user=${MYSQL_USER}"
+fi
+
+if [ ! -z "${MYSQL_PASSWORD-}" ]; then
+    IBEX_BASE_ARGS="${IBEX_BASE_ARGS} --password=${MYSQL_PASSWORD}"
+fi
 
 # Check innobackupex installed
 ibex=$(which innobackupex 2> /dev/null) || error_exit "innobackupex missing, please install xtrabackup"
-s3upload=$(which gof3r 2> /dev/null) || error_exit "gof3r missing, please install https://github.com/rlmcpherson/s3gof3r"
+s3cmd=$(which s3cmd 2> /dev/null) || error_exit "s3cmd missing, please install using pip"
 
 [ -f ${KEY_FILE} ] || error_exit "innobackupex encryption key missing. expected path: $KEY_FILE"
 
@@ -53,12 +61,13 @@ else
     ibex_archive_name=$(ts).full.xbstream
 fi
 
-
 backup_archive="$CURRENT_BACKUP_DIR/$ibex_archive_name"
 echo "Creating backup $backup_archive"
-${ibex} ${IBEX_BASE_ARGS} ${ibex_extra_args} /tmp > "$backup_archive"
-
+mkdir -p /tmp/mysqlbackup
+echo "IBEX PARAMETERS"
+echo ${IBEX_BASE_ARGS}
+${ibex} ${IBEX_BASE_ARGS} ${ibex_extra_args} /tmp/mysqlbackup > "$backup_archive"
 s3_path="s3://${S3_BUCKET}/${S3_BUCKET_PATH}/${ibex_archive_name}"
 echo "Uploading to $s3_path"
-${s3upload} cp ${backup_archive} ${s3_path}
+${s3cmd} sync --check-md5 --exclude '*/*/*/*' --exclude 'restore.log' $BACKUPS_DIR s3://$S3_BUCKET/$S3_BUCKET_PATH/
 

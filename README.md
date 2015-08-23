@@ -1,8 +1,8 @@
 # innobackupex-s3
 
-Utility scripts for encrypted incremental backups to amazon s3 based on [Streaming MariaDB backups in the cloud](https://mariadb.com/blog/streaming-mariadb-backups-cloud).
+Utility scripts for encrypted incremental backups to amazon s3 based on [Streaming MariaDB backups in the cloud](https://mariadb.com/blog/streaming-mariadb-backups-cloud) and [original tappleby's innobackupex-s3 script](https://github.com/tappleby/innobackupex-s3).
  
-The xbstream format is used for easy to manage backups.
+The xbstream format is used for easy to manage backups. S3cmd is used to perform all operations with S3. Optionally, MySQL user/password can be set for the backup operation.
  
 ## Scripts
 
@@ -12,9 +12,9 @@ Handles the incremental backups to amazon s3, 1 week of backups is also kept loc
 
 Required environment variables:
 
-- **S3_BUCKET**: amazon s3 bucket backups will be uploaded
-- **AWS_ACCESS_KEY_ID**: amazon s3 access key 
-- **AWS_SECRET_ACCESS_KEY**: amazon s3 access key secret 
+- **S3_BUCKET**: S3 bucket where the backups will be uploaded
+- **MYSQL_USER**: (optional) MySQL username
+- **MYSQL_PASSWORD**: (optional) MySQL password
 
 Optional environment variables:
 
