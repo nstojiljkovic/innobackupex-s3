@@ -12,7 +12,7 @@ KEY_FILE=${KEY_FILE:-$HOME/.s3backup.key}
 IBEX_BASE_ARGS="--no-lock --encrypt=AES256 --encrypt-key-file=$KEY_FILE --stream=xbstream --compress --extra-lsndir=$CURRENT_BACKUP_DIR"
 BACKUP_DATE_FORMAT="%F_%H-%M-%S"
 HOST=$(hostname -s)
-S3_BUCKET_PATH="mysql/${HOST}/${WEEK}"
+S3_BUCKET_PATH="${HOST}"
 
 function error_exit {
     echo "ERROR: $1"
