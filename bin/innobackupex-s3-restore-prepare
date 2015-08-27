@@ -60,7 +60,9 @@ if [ -n "$target_dir" ]; then
 	done
 
 	full_backup=${backup_dirs_to_process[0]}
-	last_backup=${backup_dirs_to_process[-1]}
+	backup_dirs_length=${#backup_dirs_to_process[@]}
+	backup_dirs_last_position=$((backup_dirs_length - 1))
+	last_backup=${backup_dirs_to_process[${backup_dirs_last_position}]}
 
 	if [ ${full_backup} != ${last_backup} ]; then
 		for d in ${backup_dirs_to_process[@]}; do
