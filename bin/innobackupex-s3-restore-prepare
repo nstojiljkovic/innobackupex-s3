@@ -26,7 +26,7 @@ for file in $CURRENT_BACKUP_DIR/*.xbstream; do
 
     if [ ! -d "$bcp_dir" ]; then
         mkdir -p ${bcp_dir}
-        xbcrypt --encrypt-algo=AES256 --decrypt --encrypt-key-file=${KEY_FILE} < ${file} | xbstream -xC ${bcp_dir}
+        xbstream -x <  ${file} -C ${bcp_dir} --encrypt-key-file=${KEY_FILE} --decrypt=AES256
     fi
 
     ${ibex} --decompress ${bcp_dir} 2>> ${RESTORE_LOG}

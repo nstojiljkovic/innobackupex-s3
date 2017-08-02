@@ -9,7 +9,7 @@ WEEK=$(date -d "$(( $(date +%u) - 1 )) days ago" +%Y-%m-%d)
 WEEK_GREP_PATTERN="[0-9]\{4\}\-[0-9]\{2\}\-[0-9]\{2\}$"
 CURRENT_BACKUP_DIR=${BACKUPS_DIR}/${WEEK}
 KEY_FILE=${KEY_FILE:-$HOME/.s3backup.key}
-IBEX_BASE_ARGS="--no-lock --encrypt=AES256 --encrypt-key-file=$KEY_FILE --stream=xbstream --compress --extra-lsndir=$CURRENT_BACKUP_DIR"
+IBEX_BASE_ARGS="--no-lock --encrypt=AES256 --encrypt-key-file=$KEY_FILE --stream=xbstream --compress --extra-lsndir=$CURRENT_BACKUP_DIR -H ${MYSQL_HOST:-127.0.0.1} -P ${MYSQL_PORT:-3306}"
 BACKUP_DATE_FORMAT="%F_%H-%M-%S"
 HOST=$(hostname -s)
 S3_BUCKET_PATH="${HOST}"
